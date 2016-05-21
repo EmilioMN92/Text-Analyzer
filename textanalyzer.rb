@@ -1,67 +1,65 @@
+#Implement all parts of this assignment within (this) module2_assignment2.rb file
+
+#Implement a class called LineAnalyzer.
 class LineAnalyzer
-	attr_reader :content, :line_number
+  attr_reader :content, :line_number, :highest_wf_words, :highest_wf_count
+  # CONSTRUCTOR
+  def initialize(line, number)
+    @content = line
+    @line_number = number
+    @highest_wf_words = []
+    calculate_word_frequency
+  end
 
-	# CONSTRUCTOR
-	def initialize(line, number)
-		@content = line
-		@line_number = number
-		calculate_word_frequency
-	end
+  # INSTANCE METHOD
+  def calculate_word_frequency
+    mapa = Hash.new(0)
+    @highest_wf_words = []
 
-	# INSTANCE METHOD
-	def calculate_word_frequency
-		mapa = Hash.new(0)
-		@highest_wf_words = []
-		content.split.each { |word| mapa[word.downcase] += 1 }
-		@highest_wf_count = mapa.values[0]
-		mapa.each_pair do |k,v|
-			if v == @highest_wf_count
-				@highest_wf_words << k
-			end
-		end
-		#puts "Línea: #{@content}"
-		#puts "Palabras: #{@highest_wf_words}"
-	end
+    content.split.each { |word| mapa[word.downcase] += 1 }
+    @highest_wf_count = mapa.values.max
 
+    mapa.each_pair do |k,v|
+      if v == @highest_wf_count
+        @highest_wf_words << k
+      end
+    end
+  end
 end
 
-class Solution < LineAnalyzer
-	attr_reader :analyzers, 
-				:highest_count_across_lines, 
-				:highest_count_words_across_lines
+#  Implement a class called Solution. 
+class Solution
+  attr_reader :analyzers, 
+              :highest_count_across_lines, 
+              :highest_count_words_across_lines
 
-	def initialize
-		@analyzers = []	
-	end
+  def initialize
+    @analyzers = [] 
+  end
 
-	def analyze_file
-		File.foreach('test.txt') do |line|
-			@analyzers << LineAnalyzer.new(line.chomp,@analyzers.length+1)
-		end 
-		#puts "#{analyzers}"
-	end
-	
-	def calculate_line_with_highest_frequency
-		@highest_count_words_across_lines = []
-		@highest_count_across_lines = @analyzers.max_by do 
-			|a| a.instance_variable_get(:@highest_wf_count)
-		end .instance_variable_get(:@highest_wf_count)
-		
-		@highest_count_words_across_lines << @analyzers.each do
-			|a| a.instance_variable_get(:@highest_wf_count) == @highest_count_across_lines
-		end
-		p @highest_count_words_across_lines
-		p @highest_count_words_across_lines[1]
-	end
+  def analyze_file
+    File.foreach('test.txt') do |line|
+      @analyzers << LineAnalyzer.new(line.chomp,@analyzers.length+1)
+    end 
+    #puts "#{analyzers}"
+  end
+  
+  def calculate_line_with_highest_frequency
+    @highest_count_words_across_lines = []
+    @index = []
+    @highest_count_across_lines = @analyzers.map(&:highest_wf_count).max
 
-	def print_highest_word_frequency_across_lines
-		puts "The following words have the highest word frequency per line: 
-			\n #{} (appears in line #{})"
-	end
+    for i in 0..@analyzers.length-1 do
+      if @analyzers[i].highest_wf_count == @highest_count_across_lines
+        @highest_count_words_across_lines << @analyzers[i].highest_wf_words
+        @index << i
+      end
+    end
+    @highest_count_words_across_lines = @highest_count_words_across_lines.flatten   
+  end
 
+  def print_highest_word_frequency_across_lines
+    puts "The following words have the highest word frequency per line:";
+    @index.each{ |i| puts "#{@analyzers[i].highest_wf_words} (appears in line #{i+1})"}
+  end
 end
-
-#ex = LineAnalyzer.new("Aqui de que estamos aqui de watilpei", 777)
-s = Solution.new
-s.analyze_file
-s.calculate_line_with_highest_frequency
